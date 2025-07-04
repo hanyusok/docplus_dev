@@ -8,50 +8,50 @@ datasource db {
 }
 
 model User {
-  id                     String               @id @default(uuid())
-  email                  String               @unique
-  password               String
-  firstName              String
-  lastName               String
-  userType               UserType
-  phoneNumber            String?
-  dateOfBirth            DateTime?
-  gender                 String?
-  address                String?
-  city                   String?
-  state                  String?
-  zipCode                String?
-  country                String?
-  licenseNumber          String?
-  specialization         String?
-  yearsOfExperience      Int?
-  education              String?
-  certifications         String?
-  emergencyContact       Json?
-  insuranceInfo          Json?
-  medicalHistory         String?
-  allergies              String?
-  currentMedications     String?
-  isActive               Boolean              @default(true)
-  isVerified             Boolean              @default(false)
-  lastLoginAt            DateTime?
-  profileImage           String?
-  twoFactorEnabled       Boolean              @default(false)
-  twoFactorSecret        String?
-  createdAt              DateTime             @default(now())
-  updatedAt              DateTime             @updatedAt
-  appointmentsAsPatient  Appointment[]        @relation("PatientAppointments")
-  appointmentsAsProvider Appointment[]        @relation("ProviderAppointments")
-  sessionsHosted         Session[]            @relation("HostSessions")
-  sessionParticipants    SessionParticipant[]
+  id                      String                   @id @default(uuid())
+  email                   String                   @unique
+  password                String
+  firstName               String
+  lastName                String
+  userType                UserType
+  phoneNumber             String?
+  dateOfBirth             DateTime?
+  gender                  String?
+  address                 String?
+  city                    String?
+  state                   String?
+  zipCode                 String?
+  country                 String?
+  licenseNumber           String?
+  specialization          String?
+  yearsOfExperience       Int?
+  education               String?
+  certifications          String?
+  emergencyContact        Json?
+  insuranceInfo           Json?
+  medicalHistory          String?
+  allergies               String?
+  currentMedications      String?
+  isActive                Boolean                  @default(true)
+  isVerified              Boolean                  @default(false)
+  lastLoginAt             DateTime?
+  profileImage            String?
+  twoFactorEnabled        Boolean                  @default(false)
+  twoFactorSecret         String?
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  appointmentsAsPatient   Appointment[]            @relation("PatientAppointments")
+  appointmentsAsProvider  Appointment[]            @relation("ProviderAppointments")
+  sessionsHosted          Session[]                @relation("HostSessions")
+  sessionParticipants     SessionParticipant[]
   waitingRoomParticipants WaitingRoomParticipant[]
-  patientRecords        MedicalRecord[]       @relation("PatientRecords")
-  providerRecords       MedicalRecord[]       @relation("ProviderRecords")
-  patientPrescriptions  Prescription[]        @relation("PatientPrescriptions")
-  providerPrescriptions Prescription[]        @relation("ProviderPrescriptions")
-  notifications         Notification[]
-  schedules            Schedule[]
-  timeSlots            TimeSlot[]
+  patientRecords          MedicalRecord[]          @relation("PatientRecords")
+  providerRecords         MedicalRecord[]          @relation("ProviderRecords")
+  patientPrescriptions    Prescription[]           @relation("PatientPrescriptions")
+  providerPrescriptions   Prescription[]           @relation("ProviderPrescriptions")
+  notifications           Notification[]
+  schedules               Schedule[]
+  timeSlots               TimeSlot[]
 }
 
 model Appointment {
@@ -224,146 +224,148 @@ enum ParticipantStatus {
 }
 
 model WaitingRoom {
-  id                String            @id @default(uuid())
-  sessionId         String            @unique
-  isOpen            Boolean           @default(true)
-  maxWaitTime       Int               @default(30) // minutes
-  currentQueue      Int               @default(0)
-  estimatedWaitTime Int?              // minutes
-  autoAdmit         Boolean           @default(false)
-  allowChat         Boolean           @default(true)
-  allowVideo        Boolean           @default(false)
-  allowAudio        Boolean           @default(false)
+  id                String                   @id @default(uuid())
+  sessionId         String                   @unique
+  isOpen            Boolean                  @default(true)
+  maxWaitTime       Int                      @default(30) // minutes
+  currentQueue      Int                      @default(0)
+  estimatedWaitTime Int? // minutes
+  autoAdmit         Boolean                  @default(false)
+  allowChat         Boolean                  @default(true)
+  allowVideo        Boolean                  @default(false)
+  allowAudio        Boolean                  @default(false)
   customMessage     String?
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
-  session           Session           @relation(fields: [sessionId], references: [id])
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+  session           Session                  @relation(fields: [sessionId], references: [id])
   participants      WaitingRoomParticipant[]
 }
 
 model WaitingRoomParticipant {
-  id              String        @id @default(uuid())
-  waitingRoomId   String
-  userId          String
-  joinTime        DateTime      @default(now())
-  estimatedWait   Int?          // minutes
-  priority        Int           @default(0)
-  notes           String?
-  status          WaitingStatus @default(waiting)
-  admittedAt      DateTime?
-  admittedBy      String?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  waitingRoom     WaitingRoom   @relation(fields: [waitingRoomId], references: [id])
-  user            User          @relation(fields: [userId], references: [id])
+  id            String        @id @default(uuid())
+  waitingRoomId String
+  userId        String
+  joinTime      DateTime      @default(now())
+  estimatedWait Int? // minutes
+  priority      Int           @default(0)
+  notes         String?
+  status        WaitingStatus @default(waiting)
+  admittedAt    DateTime?
+  admittedBy    String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  waitingRoom   WaitingRoom   @relation(fields: [waitingRoomId], references: [id])
+  user          User          @relation(fields: [userId], references: [id])
 }
 
 model MedicalRecord {
-  id                String            @id @default(uuid())
-  patientId         String
-  providerId        String
-  appointmentId     String?
-  sessionId         String?
-  recordType        RecordType
-  title             String
-  description       String?
-  symptoms          String?
-  diagnosis         String?
-  treatment         String?
-  prescription      String?
-  labResults        Json?
-  vitalSigns        Json?
-  notes             String?
-  isConfidential    Boolean           @default(false)
-  attachments       Json?
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
-  patient           User              @relation("PatientRecords", fields: [patientId], references: [id])
-  provider          User              @relation("ProviderRecords", fields: [providerId], references: [id])
-  appointment       Appointment?      @relation(fields: [appointmentId], references: [id])
-  session           Session?          @relation(fields: [sessionId], references: [id])
+  id             String       @id @default(uuid())
+  patientId      String
+  providerId     String
+  appointmentId  String?
+  sessionId      String?
+  recordType     RecordType
+  title          String
+  description    String?
+  symptoms       String?
+  diagnosis      String?
+  treatment      String?
+  prescription   String?
+  labResults     Json?
+  vitalSigns     Json?
+  notes          String?
+  isConfidential Boolean      @default(false)
+  attachments    Json?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  patient        User         @relation("PatientRecords", fields: [patientId], references: [id])
+  provider       User         @relation("ProviderRecords", fields: [providerId], references: [id])
+  appointment    Appointment? @relation(fields: [appointmentId], references: [id])
+  session        Session?     @relation(fields: [sessionId], references: [id])
 }
 
 model Prescription {
-  id                String            @id @default(uuid())
-  patientId         String
-  providerId        String
-  appointmentId     String?
-  sessionId         String?
-  medicationName    String
-  dosage            String
-  frequency         String
-  duration          String
-  instructions      String?
-  quantity          Int
-  refills           Int               @default(0)
-  isActive          Boolean           @default(true)
-  prescribedAt      DateTime          @default(now())
-  expiresAt         DateTime?
-  filledAt          DateTime?
-  pharmacy          String?
-  cost              Decimal?          @db.Decimal(10, 2)
-  insuranceCovered  Boolean           @default(false)
-  notes             String?
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
-  patient           User              @relation("PatientPrescriptions", fields: [patientId], references: [id])
-  provider          User              @relation("ProviderPrescriptions", fields: [providerId], references: [id])
-  appointment       Appointment?      @relation(fields: [appointmentId], references: [id])
-  session           Session?          @relation(fields: [sessionId], references: [id])
+  id               String       @id @default(uuid())
+  patientId        String
+  providerId       String
+  appointmentId    String?
+  sessionId        String?
+  medicationName   String
+  dosage           String
+  frequency        String
+  duration         String
+  instructions     String?
+  quantity         Int
+  refills          Int          @default(0)
+  isActive         Boolean      @default(true)
+  prescribedAt     DateTime     @default(now())
+  expiresAt        DateTime?
+  filledAt         DateTime?
+  pharmacy         String?
+  cost             Decimal?     @db.Decimal(10, 2)
+  insuranceCovered Boolean      @default(false)
+  notes            String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  patient          User         @relation("PatientPrescriptions", fields: [patientId], references: [id])
+  provider         User         @relation("ProviderPrescriptions", fields: [providerId], references: [id])
+  appointment      Appointment? @relation(fields: [appointmentId], references: [id])
+  session          Session?     @relation(fields: [sessionId], references: [id])
 }
 
 model Notification {
-  id                String            @id @default(uuid())
-  userId            String
-  type              NotificationType
-  title             String
-  message           String
-  isRead            Boolean           @default(false)
-  isUrgent          Boolean           @default(false)
-  actionUrl          String?
-  actionText         String?
-  scheduledFor       DateTime?
-  sentAt             DateTime?
-  readAt             DateTime?
-  metadata           Json?
-  createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @updatedAt
-  user               User              @relation(fields: [userId], references: [id])
+  id           String           @id @default(uuid())
+  userId       String
+  type         NotificationType
+  title        String
+  message      String
+  isRead       Boolean          @default(false)
+  isUrgent     Boolean          @default(false)
+  actionUrl    String?
+  actionText   String?
+  scheduledFor DateTime?
+  sentAt       DateTime?
+  readAt       DateTime?
+  metadata     Json?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  user         User             @relation(fields: [userId], references: [id])
 }
 
 model Schedule {
-  id                String            @id @default(uuid())
-  providerId         String
-  dayOfWeek          Int              // 0-6 (Sunday-Saturday)
-  startTime          String           // HH:MM format
-  endTime            String           // HH:MM format
-  isAvailable        Boolean          @default(true)
-  appointmentDuration Int              @default(30) // minutes
-  breakDuration      Int              @default(15) // minutes
-  maxAppointments    Int?
-  isRecurring        Boolean          @default(true)
-  startDate          DateTime?
-  endDate            DateTime?
-  notes              String?
-  createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @updatedAt
-  provider           User              @relation(fields: [providerId], references: [id])
-  timeSlots          TimeSlot[]
+  id                  String     @id @default(uuid())
+  providerId          String
+  dayOfWeek           Int // 0-6 (Sunday-Saturday)
+  startTime           String // HH:MM format
+  endTime             String // HH:MM format
+  isAvailable         Boolean    @default(true)
+  appointmentDuration Int        @default(30) // minutes
+  breakDuration       Int        @default(15) // minutes
+  maxAppointments     Int?
+  isRecurring         Boolean    @default(true)
+  startDate           DateTime?
+  endDate             DateTime?
+  notes               String?
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+  provider            User       @relation(fields: [providerId], references: [id])
+  timeSlots           TimeSlot[]
 }
 
 model TimeSlot {
-  id                String            @id @default(uuid())
-  scheduleId         String
-  startTime          DateTime
-  endTime            DateTime
-  isAvailable        Boolean          @default(true)
-  isBooked           Boolean          @default(false)
-  appointmentId      String?
-  createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @updatedAt
-  schedule           Schedule          @relation(fields: [scheduleId], references: [id])
-  appointment        Appointment?      @relation(fields: [appointmentId], references: [id])
+  id            String       @id @default(uuid())
+  scheduleId    String
+  userId        String
+  startTime     DateTime
+  endTime       DateTime
+  isAvailable   Boolean      @default(true)
+  isBooked      Boolean      @default(false)
+  appointmentId String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  schedule      Schedule     @relation(fields: [scheduleId], references: [id])
+  user          User         @relation(fields: [userId], references: [id])
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
 }
 
 enum WaitingStatus {

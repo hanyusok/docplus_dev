@@ -14,12 +14,12 @@ export default function AdminDashboard() {
     if (status === "loading") return;
     
     if (!session) {
-      router.push("/auth/signin");
+      router.push("/auth/login");
       return;
     }
 
     if (session.user.userType !== "admin") {
-      router.push("/auth/signin");
+      router.push("/auth/login");
       return;
     }
   }, [session, status, router]);

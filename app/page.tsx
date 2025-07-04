@@ -37,7 +37,7 @@ export default function Home() {
                 Go to Dashboard
               </Link>
               <Link
-                href="/auth/signin"
+                href="/auth/login"
                 className="bg-gray-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-700 transition-colors"
               >
                 Sign Out
@@ -51,13 +51,13 @@ export default function Home() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href="/auth/signin"
+                href="/auth/login"
                 className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
               >
                 Sign In
               </Link>
               <Link
-                href="/auth/signup"
+                href="/auth/register"
                 className="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors"
               >
                 Sign Up

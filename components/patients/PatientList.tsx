@@ -1,8 +1,11 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import Link from 'next/link';
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
+import FormInput from "@/components/ui/FormInput";
+import FormSelect from "@/components/ui/FormSelect";
+import { formatDate, getStatusColor } from "@/lib/utils";
 
 interface Patient {
   id: string;
@@ -12,13 +15,9 @@ interface Patient {
   phoneNumber?: string;
   dateOfBirth?: string;
   gender?: string;
+  isActive: boolean;
   lastAppointment?: string;
   nextAppointment?: string;
-  totalAppointments: number;
-  isActive: boolean;
-  medicalHistory?: string;
-  allergies?: string;
-  currentMedications?: string;
 }
 
 export default function PatientList() {
@@ -75,14 +74,17 @@ export default function PatientList() {
       }
     });
 
-  const getStatusColor = (isActive: boolean) => {
-    return isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800';
-  };
+  const statusOptions = [
+    { value: "all", label: "All Patients" },
+    { value: "active", label: "Active" },
+    { value: "inactive", label: "Inactive" },
+  ];
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'Never';
-    return new Date(dateString).toLocaleDateString();
-  };
+  const sortOptions = [
+    { value: "name", label: "Name" },
+    { value: "lastVisit", label: "Last Visit" },
+    { value: "nextAppointment", label: "Next Appointment" },
+  ];
 
   if (isLoading) {
     return (
@@ -111,59 +113,43 @@ export default function PatientList() {
       {/* Filters */}
       <div className="bg-white p-4 rounded-lg shadow-sm border">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Search
-            </label>
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by name or email..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+          <FormInput
+            id="search"
+            name="search"
+            type="text"
+            label="Search"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search by name or email..."
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Status
-            </label>
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value as any)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">All Patients</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
-          </div>
+          <FormSelect
+            id="status"
+            name="status"
+            label="Status"
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value as any)}
+            options={statusOptions}
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Sort By
-            </label>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="name">Name</option>
-              <option value="lastVisit">Last Visit</option>
-              <option value="nextAppointment">Next Appointment</option>
-            </select>
-          </div>
-
-          <div className="flex items-end">
-            <span className="text-sm text-gray-600">
-              {filteredPatients.length} of {patients.length} patients
-            </span>
-          </div>
+          <FormSelect
+            id="sort"
+            name="sort"
+            label="Sort By"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+            options={sortOptions}
+          />
         </div>
       </div>
 
-      {/* Patient List */}
-      <div className="bg-white shadow-sm border rounded-lg overflow-hidden">
+      {/* Patient Table */}
+      <div className="bg-white shadow-sm rounded-lg overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h3 className="text-lg font-medium text-gray-900">
+            Patients ({filteredPatients.length})
+          </h3>
+        </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -228,38 +214,24 @@ export default function PatientList() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-2">
-                      <Link
-                        href={`/patients/${patient.id}`}
-                        className="text-blue-600 hover:text-blue-900"
-                      >
-                        View
-                      </Link>
-                      <Link
-                        href={`/patients/${patient.id}/edit`}
-                        className="text-green-600 hover:text-green-900"
-                      >
-                        Edit
-                      </Link>
-                      <Link
-                        href={`/appointments/new?patientId=${patient.id}`}
-                        className="text-purple-600 hover:text-purple-900"
-                      >
-                        Schedule
-                      </Link>
-                    </div>
+                    <Link
+                      href={`/patients/${patient.id}`}
+                      className="text-blue-600 hover:text-blue-900 mr-4"
+                    >
+                      View
+                    </Link>
+                    <Link
+                      href={`/patients/${patient.id}/edit`}
+                      className="text-indigo-600 hover:text-indigo-900"
+                    >
+                      Edit
+                    </Link>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-
-        {filteredPatients.length === 0 && (
-          <div className="text-center py-8">
-            <p className="text-gray-500">No patients found</p>
-          </div>
-        )}
       </div>
     </div>
   );

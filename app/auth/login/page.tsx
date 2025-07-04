@@ -4,19 +4,21 @@ import { signIn, getSession } from "next-auth/react";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+import FormInput from "@/components/ui/FormInput";
+import ErrorDisplay from "@/components/ui/ErrorDisplay";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { validateLoginForm, LoginFormData } from "@/components/auth/FormValidation";
 
 export default function LoginPage() {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<LoginFormData>({
     email: "",
     password: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const message = searchParams.get("message");
+  const message = searchParams?.get("message");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -30,6 +32,13 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     setError("");
+
+    const validation = validateLoginForm(formData);
+    if (!validation.isValid) {
+      setError(validation.error || "Validation failed");
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const result = await signIn("credentials", {
@@ -66,19 +75,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <div className="mx-auto h-12 w-12 bg-blue-600 rounded-full flex items-center justify-center">
-            <svg className="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-          </div>
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            Welcome back
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Sign in to your account
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Sign in to your telemedicine account
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Access your telemedicine platform
           </p>
         </div>
 
@@ -87,7 +91,7 @@ export default function LoginPage() {
             <div className="flex">
               <div className="flex-shrink-0">
                 <svg className="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                 </svg>
               </div>
               <div className="ml-3">
@@ -99,68 +103,33 @@ export default function LoginPage() {
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                placeholder="Enter your email"
-                value={formData.email}
-                onChange={handleChange}
-              />
-            </div>
+            <FormInput
+              id="email"
+              name="email"
+              type="email"
+              label="Email address"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="Enter your email"
+              required
+              autoComplete="email"
+            />
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <div className="mt-1 relative">
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  autoComplete="current-password"
-                  required
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm pr-10"
-                  placeholder="Enter your password"
-                  value={formData.password}
-                  onChange={handleChange}
-                />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeSlashIcon className="h-5 w-5 text-gray-400" />
-                  ) : (
-                    <EyeIcon className="h-5 w-5 text-gray-400" />
-                  )}
-                </button>
-              </div>
-            </div>
+            <FormInput
+              id="password"
+              name="password"
+              type="password"
+              label="Password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Enter your password"
+              required
+              autoComplete="current-password"
+              showPasswordToggle
+            />
           </div>
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-md p-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm text-red-700">{error}</p>
-                </div>
-              </div>
-            </div>
-          )}
+          <ErrorDisplay error={error} />
 
           <div className="flex items-center justify-between">
             <div className="flex items-center">
@@ -190,10 +159,7 @@ export default function LoginPage() {
             >
               {isLoading ? (
                 <div className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
+                  <LoadingSpinner size="h-5 w-5" className="-ml-1 mr-3" />
                   Signing in...
                 </div>
               ) : (
@@ -203,12 +169,12 @@ export default function LoginPage() {
           </div>
 
           <div className="text-center">
-            <p className="text-sm text-gray-600">
-              Don't have an account?{" "}
-              <Link href="/auth/register" className="font-medium text-blue-600 hover:text-blue-500">
-                Sign up
-              </Link>
-            </p>
+            <Link
+              href="/auth/register"
+              className="font-medium text-blue-600 hover:text-blue-500"
+            >
+              Don't have an account? Sign up
+            </Link>
           </div>
         </form>
       </div>

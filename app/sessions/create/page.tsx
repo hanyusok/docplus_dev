@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import FormInput from "@/components/ui/FormInput";
+import ErrorDisplay from "@/components/ui/ErrorDisplay";
 
 export default function CreateSessionPage() {
   const [form, setForm] = useState({
@@ -14,54 +16,70 @@ export default function CreateSessionPage() {
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-    setError("");
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
+    setError(""); // Clear error when user types
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
-    // TODO: Call API to create session
-    setTimeout(() => {
+
+    try {
+      const response = await fetch("/api/sessions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: form.name,
+          description: form.description,
+          startTime: form.startTime,
+        }),
+      });
+
+      if (response.ok) {
+        const session = await response.json();
+        router.push(`/sessions/${session.id}`);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || "Failed to create session");
+      }
+    } catch (error) {
+      setError("An error occurred. Please try again.");
+    } finally {
       setIsLoading(false);
-      router.push("/dashboard");
-    }, 1000);
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <div className="mx-auto h-12 w-12 bg-blue-600 rounded-full flex items-center justify-center">
-            <svg className="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-          </div>
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            Create Group Session
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Create New Session
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Start a new telemedicine group consultation
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Set up a new telemedicine session
           </p>
         </div>
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Session Name
-              </label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                placeholder="e.g. Cardiology Group"
-                value={form.name}
-                onChange={handleChange}
-              />
-            </div>
+            <FormInput
+              id="name"
+              name="name"
+              type="text"
+              label="Session Name"
+              value={form.name}
+              onChange={handleChange}
+              placeholder="e.g. Cardiology Group"
+              required
+            />
+
             <div>
               <label htmlFor="description" className="block text-sm font-medium text-gray-700">
                 Description
@@ -76,29 +94,25 @@ export default function CreateSessionPage() {
                 onChange={handleChange}
               />
             </div>
-            <div>
-              <label htmlFor="startTime" className="block text-sm font-medium text-gray-700">
-                Start Time
-              </label>
-              <input
-                id="startTime"
-                name="startTime"
-                type="datetime-local"
-                required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                value={form.startTime}
-                onChange={handleChange}
-              />
-            </div>
+
+            <FormInput
+              id="startTime"
+              name="startTime"
+              type="datetime-local"
+              label="Start Time"
+              value={form.startTime}
+              onChange={handleChange}
+              required
+            />
           </div>
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-md p-4 text-red-700 text-sm">{error}</div>
-          )}
+
+          <ErrorDisplay error={error} />
+
           <div>
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? "Creating..." : "Create Session"}
             </button>

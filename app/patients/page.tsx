@@ -13,7 +13,7 @@ export default function PatientsPage() {
     if (status === 'loading') return;
     
     if (!session) {
-      router.push('/auth/signin');
+      router.push('/auth/login');
       return;
     }
 

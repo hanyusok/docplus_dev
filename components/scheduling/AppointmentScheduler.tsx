@@ -1,7 +1,10 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import FormInput from "@/components/ui/FormInput";
+import FormSelect from "@/components/ui/FormSelect";
+import { formatTime } from "@/lib/utils";
 
 interface TimeSlot {
   id: string;
@@ -25,7 +28,7 @@ interface AppointmentForm {
 
 export default function AppointmentScheduler() {
   const { data: session } = useSession();
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -42,28 +45,23 @@ export default function AppointmentScheduler() {
   });
 
   useEffect(() => {
-    if (selectedDate) {
+    if (session?.user) {
       loadAvailableSlots();
     }
-  }, [selectedDate]);
+  }, [session, selectedDate]);
 
   const loadAvailableSlots = async () => {
-    setIsLoading(true);
+    if (!session?.user) return;
+
     try {
-      const providerId = session?.user?.id || 'default-provider';
-      const response = await fetch(`/api/schedule/slots?providerId=${providerId}&date=${selectedDate.toISOString()}`);
+      const dateStr = selectedDate.toISOString().split('T')[0];
+      const response = await fetch(`/api/schedule/slots?providerId=${session.user.id}&date=${dateStr}`);
       if (response.ok) {
         const slots = await response.json();
         setAvailableSlots(slots);
-      } else {
-        console.error('Failed to load time slots:', response.statusText);
-        setAvailableSlots([]);
       }
     } catch (error) {
-      console.error('Error loading time slots:', error);
-      setAvailableSlots([]);
-    } finally {
-      setIsLoading(false);
+      console.error('Error loading available slots:', error);
     }
   };
 
@@ -146,11 +144,6 @@ export default function AppointmentScheduler() {
     return days;
   };
 
-  const formatTime = (timeString: string) => {
-    const date = new Date(timeString);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-
   const isToday = (date: Date) => {
     const today = new Date();
     return date.toDateString() === today.toDateString();
@@ -159,6 +152,23 @@ export default function AppointmentScheduler() {
   const isSelected = (date: Date) => {
     return date.toDateString() === selectedDate.toDateString();
   };
+
+  const sessionTypeOptions = [
+    { value: "individual", label: "Individual" },
+    { value: "group", label: "Group" },
+    { value: "consultation", label: "Consultation" },
+    { value: "therapy", label: "Therapy" },
+    { value: "follow_up", label: "Follow-up" },
+  ];
+
+  const durationOptions = [
+    { value: "15", label: "15 minutes" },
+    { value: "30", label: "30 minutes" },
+    { value: "45", label: "45 minutes" },
+    { value: "60", label: "1 hour" },
+    { value: "90", label: "1.5 hours" },
+    { value: "120", label: "2 hours" },
+  ];
 
   return (
     <div className="max-w-6xl mx-auto p-6">
@@ -201,36 +211,31 @@ export default function AppointmentScheduler() {
 
           {/* Time Slots */}
           <div className="mb-8">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Select Time</h3>
-            {isLoading ? (
-              <div className="text-center py-8">
-                <div className="text-gray-500">Loading available slots...</div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-4 gap-3">
-                {availableSlots.map((slot) => (
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Available Time Slots</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+              {availableSlots.length === 0 ? (
+                <p className="text-gray-500 col-span-full text-center py-4">
+                  No available slots for this date
+                </p>
+              ) : (
+                availableSlots.map((slot) => (
                   <button
                     key={slot.id}
                     onClick={() => handleTimeSlotSelect(slot)}
-                    disabled={!slot.isAvailable || slot.isBooked}
-                    className={`p-3 rounded-lg border transition-colors ${
+                    className={`p-3 text-center rounded-lg border transition-colors ${
                       selectedTimeSlot?.id === slot.id
-                        ? 'border-blue-600 bg-blue-50 text-blue-800'
-                        : slot.isAvailable && !slot.isBooked
-                        ? 'border-gray-300 hover:border-blue-300 hover:bg-blue-50'
-                        : 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                        ? 'bg-blue-600 text-white border-blue-600'
+                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                     }`}
                   >
-                    <div className="text-sm font-medium">
-                      {formatTime(slot.startTime)}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {slot.isBooked ? 'Booked' : 'Available'}
+                    <div className="text-sm font-medium">{formatTime(slot.startTime)}</div>
+                    <div className="text-xs opacity-75">
+                      {formatTime(slot.endTime)}
                     </div>
                   </button>
-                ))}
-              </div>
-            )}
+                ))
+              )}
+            </div>
           </div>
 
           {/* Appointment Form */}
@@ -239,53 +244,34 @@ export default function AppointmentScheduler() {
               <h3 className="text-lg font-medium text-gray-900">Appointment Details</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Title
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) => handleFormChange('title', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                </div>
+                <FormInput
+                  id="title"
+                  name="title"
+                  type="text"
+                  label="Title"
+                  value={formData.title}
+                  onChange={(e) => handleFormChange('title', e.target.value)}
+                  placeholder="Appointment title"
+                  required
+                />
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Session Type
-                  </label>
-                  <select
-                    value={formData.sessionType}
-                    onChange={(e) => handleFormChange('sessionType', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="individual">Individual</option>
-                    <option value="group">Group</option>
-                    <option value="consultation">Consultation</option>
-                    <option value="therapy">Therapy</option>
-                    <option value="follow_up">Follow-up</option>
-                  </select>
-                </div>
+                <FormSelect
+                  id="sessionType"
+                  name="sessionType"
+                  label="Session Type"
+                  value={formData.sessionType}
+                  onChange={(e) => handleFormChange('sessionType', e.target.value)}
+                  options={sessionTypeOptions}
+                />
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Duration (minutes)
-                  </label>
-                  <select
-                    value={formData.duration}
-                    onChange={(e) => handleFormChange('duration', parseInt(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value={15}>15 minutes</option>
-                    <option value={30}>30 minutes</option>
-                    <option value={45}>45 minutes</option>
-                    <option value={60}>1 hour</option>
-                    <option value={90}>1.5 hours</option>
-                    <option value={120}>2 hours</option>
-                  </select>
-                </div>
+                <FormSelect
+                  id="duration"
+                  name="duration"
+                  label="Duration (minutes)"
+                  value={formData.duration.toString()}
+                  onChange={(e) => handleFormChange('duration', parseInt(e.target.value))}
+                  options={durationOptions}
+                />
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
