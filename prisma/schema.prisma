@@ -1,0 +1,394 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                     String               @id @default(uuid())
+  email                  String               @unique
+  password               String
+  firstName              String
+  lastName               String
+  userType               UserType
+  phoneNumber            String?
+  dateOfBirth            DateTime?
+  gender                 String?
+  address                String?
+  city                   String?
+  state                  String?
+  zipCode                String?
+  country                String?
+  licenseNumber          String?
+  specialization         String?
+  yearsOfExperience      Int?
+  education              String?
+  certifications         String?
+  emergencyContact       Json?
+  insuranceInfo          Json?
+  medicalHistory         String?
+  allergies              String?
+  currentMedications     String?
+  isActive               Boolean              @default(true)
+  isVerified             Boolean              @default(false)
+  lastLoginAt            DateTime?
+  profileImage           String?
+  twoFactorEnabled       Boolean              @default(false)
+  twoFactorSecret        String?
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+  appointmentsAsPatient  Appointment[]        @relation("PatientAppointments")
+  appointmentsAsProvider Appointment[]        @relation("ProviderAppointments")
+  sessionsHosted         Session[]            @relation("HostSessions")
+  sessionParticipants    SessionParticipant[]
+  waitingRoomParticipants WaitingRoomParticipant[]
+  patientRecords        MedicalRecord[]       @relation("PatientRecords")
+  providerRecords       MedicalRecord[]       @relation("ProviderRecords")
+  patientPrescriptions  Prescription[]        @relation("PatientPrescriptions")
+  providerPrescriptions Prescription[]        @relation("ProviderPrescriptions")
+  notifications         Notification[]
+  schedules            Schedule[]
+  timeSlots            TimeSlot[]
+}
+
+model Appointment {
+  id                  String            @id @default(uuid())
+  title               String
+  description         String?
+  startTime           DateTime
+  endTime             DateTime
+  duration            Int
+  sessionType         SessionType
+  status              AppointmentStatus @default(scheduled)
+  sessionId           String?
+  meetingUrl          String?
+  maxParticipants     Int?
+  currentParticipants Int?              @default(0)
+  isGroupSession      Boolean           @default(false)
+  allowRecording      Boolean           @default(false)
+  allowScreenSharing  Boolean           @default(true)
+  allowChat           Boolean           @default(true)
+  waitingRoomEnabled  Boolean           @default(true)
+  notes               String?
+  diagnosis           String?
+  prescription        String?
+  followUpDate        DateTime?
+  cost                Decimal?          @db.Decimal(10, 2)
+  currency            String?           @default("USD")
+  paymentStatus       PaymentStatus     @default(pending)
+  reminderSent        Boolean           @default(false)
+  reminderSentAt      DateTime?
+  cancelledAt         DateTime?
+  cancelledBy         String?
+  cancellationReason  String?
+  providerId          String
+  patientId           String
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  patient             User              @relation("PatientAppointments", fields: [patientId], references: [id])
+  provider            User              @relation("ProviderAppointments", fields: [providerId], references: [id])
+  sessions            Session[]         @relation("AppointmentSessions")
+  medicalRecords      MedicalRecord[]
+  prescriptions       Prescription[]
+  timeSlots           TimeSlot[]
+}
+
+model Session {
+  id                       String               @id @default(uuid())
+  sessionId                String               @unique
+  title                    String
+  status                   SessionStatus        @default(waiting)
+  startTime                DateTime?
+  endTime                  DateTime?
+  duration                 Int                  @default(0)
+  sessionType              SessionType
+  allowRecording           Boolean              @default(false)
+  allowScreenSharing       Boolean              @default(true)
+  allowChat                Boolean              @default(true)
+  waitingRoomEnabled       Boolean              @default(true)
+  maxParticipants          Int?
+  currentParticipants      Int                  @default(0)
+  isRecording              Boolean              @default(false)
+  recordingUrl             String?
+  recordingStartedAt       DateTime?
+  recordingStoppedAt       DateTime?
+  chatLogs                 Json?
+  notes                    String?
+  serverRegion             String?
+  qualitySettings          Json?
+  errors                   Json?
+  totalParticipants        Int                  @default(0)
+  averageConnectionQuality Float?
+  encryptionKey            String?
+  accessToken              String?
+  appointmentId            String?
+  hostId                   String
+  createdAt                DateTime             @default(now())
+  updatedAt                DateTime             @updatedAt
+  appointment              Appointment?         @relation("AppointmentSessions", fields: [appointmentId], references: [id])
+  host                     User                 @relation("HostSessions", fields: [hostId], references: [id])
+  participants             SessionParticipant[]
+  waitingRoom              WaitingRoom?
+  medicalRecords           MedicalRecord[]
+  prescriptions            Prescription[]
+}
+
+model SessionParticipant {
+  id                 String            @id @default(uuid())
+  role               SessionRole       @default(participant)
+  status             ParticipantStatus @default(waiting)
+  joinTime           DateTime?
+  leaveTime          DateTime?
+  duration           Int               @default(0)
+  videoEnabled       Boolean           @default(true)
+  audioEnabled       Boolean           @default(true)
+  screenSharing      Boolean           @default(false)
+  connectionQuality  String?
+  bandwidth          Float?
+  latency            Int?
+  canRecord          Boolean           @default(false)
+  canShareScreen     Boolean           @default(true)
+  canChat            Boolean           @default(true)
+  canAdmitOthers     Boolean           @default(false)
+  deviceInfo         Json?
+  browserInfo        Json?
+  ipAddress          String?
+  userAgent          String?
+  messagesSent       Int               @default(0)
+  recordingConsent   Boolean           @default(false)
+  recordingConsentAt DateTime?
+  notes              String?
+  sessionId          String
+  userId             String
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  session            Session           @relation(fields: [sessionId], references: [id])
+  user               User              @relation(fields: [userId], references: [id])
+}
+
+enum UserType {
+  doctor
+  patient
+  admin
+  nurse
+  therapist
+}
+
+enum AppointmentStatus {
+  scheduled
+  confirmed
+  in_progress
+  completed
+  cancelled
+  no_show
+}
+
+enum SessionType {
+  individual
+  group
+  consultation
+  therapy
+  follow_up
+}
+
+enum PaymentStatus {
+  pending
+  paid
+  refunded
+  cancelled
+}
+
+enum SessionStatus {
+  waiting
+  active
+  paused
+  ended
+  cancelled
+}
+
+enum SessionRole {
+  host
+  participant
+  observer
+  moderator
+}
+
+enum ParticipantStatus {
+  waiting
+  joined
+  left
+  removed
+}
+
+model WaitingRoom {
+  id                String            @id @default(uuid())
+  sessionId         String            @unique
+  isOpen            Boolean           @default(true)
+  maxWaitTime       Int               @default(30) // minutes
+  currentQueue      Int               @default(0)
+  estimatedWaitTime Int?              // minutes
+  autoAdmit         Boolean           @default(false)
+  allowChat         Boolean           @default(true)
+  allowVideo        Boolean           @default(false)
+  allowAudio        Boolean           @default(false)
+  customMessage     String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  session           Session           @relation(fields: [sessionId], references: [id])
+  participants      WaitingRoomParticipant[]
+}
+
+model WaitingRoomParticipant {
+  id              String        @id @default(uuid())
+  waitingRoomId   String
+  userId          String
+  joinTime        DateTime      @default(now())
+  estimatedWait   Int?          // minutes
+  priority        Int           @default(0)
+  notes           String?
+  status          WaitingStatus @default(waiting)
+  admittedAt      DateTime?
+  admittedBy      String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  waitingRoom     WaitingRoom   @relation(fields: [waitingRoomId], references: [id])
+  user            User          @relation(fields: [userId], references: [id])
+}
+
+model MedicalRecord {
+  id                String            @id @default(uuid())
+  patientId         String
+  providerId        String
+  appointmentId     String?
+  sessionId         String?
+  recordType        RecordType
+  title             String
+  description       String?
+  symptoms          String?
+  diagnosis         String?
+  treatment         String?
+  prescription      String?
+  labResults        Json?
+  vitalSigns        Json?
+  notes             String?
+  isConfidential    Boolean           @default(false)
+  attachments       Json?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  patient           User              @relation("PatientRecords", fields: [patientId], references: [id])
+  provider          User              @relation("ProviderRecords", fields: [providerId], references: [id])
+  appointment       Appointment?      @relation(fields: [appointmentId], references: [id])
+  session           Session?          @relation(fields: [sessionId], references: [id])
+}
+
+model Prescription {
+  id                String            @id @default(uuid())
+  patientId         String
+  providerId        String
+  appointmentId     String?
+  sessionId         String?
+  medicationName    String
+  dosage            String
+  frequency         String
+  duration          String
+  instructions      String?
+  quantity          Int
+  refills           Int               @default(0)
+  isActive          Boolean           @default(true)
+  prescribedAt      DateTime          @default(now())
+  expiresAt         DateTime?
+  filledAt          DateTime?
+  pharmacy          String?
+  cost              Decimal?          @db.Decimal(10, 2)
+  insuranceCovered  Boolean           @default(false)
+  notes             String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  patient           User              @relation("PatientPrescriptions", fields: [patientId], references: [id])
+  provider          User              @relation("ProviderPrescriptions", fields: [providerId], references: [id])
+  appointment       Appointment?      @relation(fields: [appointmentId], references: [id])
+  session           Session?          @relation(fields: [sessionId], references: [id])
+}
+
+model Notification {
+  id                String            @id @default(uuid())
+  userId            String
+  type              NotificationType
+  title             String
+  message           String
+  isRead            Boolean           @default(false)
+  isUrgent          Boolean           @default(false)
+  actionUrl          String?
+  actionText         String?
+  scheduledFor       DateTime?
+  sentAt             DateTime?
+  readAt             DateTime?
+  metadata           Json?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  user               User              @relation(fields: [userId], references: [id])
+}
+
+model Schedule {
+  id                String            @id @default(uuid())
+  providerId         String
+  dayOfWeek          Int              // 0-6 (Sunday-Saturday)
+  startTime          String           // HH:MM format
+  endTime            String           // HH:MM format
+  isAvailable        Boolean          @default(true)
+  appointmentDuration Int              @default(30) // minutes
+  breakDuration      Int              @default(15) // minutes
+  maxAppointments    Int?
+  isRecurring        Boolean          @default(true)
+  startDate          DateTime?
+  endDate            DateTime?
+  notes              String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  provider           User              @relation(fields: [providerId], references: [id])
+  timeSlots          TimeSlot[]
+}
+
+model TimeSlot {
+  id                String            @id @default(uuid())
+  scheduleId         String
+  startTime          DateTime
+  endTime            DateTime
+  isAvailable        Boolean          @default(true)
+  isBooked           Boolean          @default(false)
+  appointmentId      String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  schedule           Schedule          @relation(fields: [scheduleId], references: [id])
+  appointment        Appointment?      @relation(fields: [appointmentId], references: [id])
+}
+
+enum WaitingStatus {
+  waiting
+  admitted
+  left
+  removed
+}
+
+enum RecordType {
+  consultation
+  follow_up
+  emergency
+  routine
+  specialist
+}
+
+enum NotificationType {
+  appointment_reminder
+  appointment_confirmation
+  appointment_cancellation
+  session_start
+  session_end
+  prescription_ready
+  lab_results
+  general
+  urgent
+}
