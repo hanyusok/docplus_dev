@@ -1,17 +1,12 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
   "/dashboard/page": "app/dashboard/page.js",
+  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
+  "/auth/signin/page": "app/auth/signin/page.js",
+  "/api/notifications/route": "app/api/notifications/route.js",
+  "/api/sessions/route": "app/api/sessions/route.js",
   "/sessions/create/page": "app/sessions/create/page.js",
   "/sessions/join/page": "app/sessions/join/page.js",
   "/sessions/[sessionId]/page": "app/sessions/[sessionId]/page.js",
-  "/page": "app/page.js",
-  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
-  "/api/notifications/route": "app/api/notifications/route.js",
-  "/api/sessions/route": "app/api/sessions/route.js",
-  "/doctor/dashboard/page": "app/doctor/dashboard/page.js",
-  "/patients/page": "app/patients/page.js",
-  "/api/patients/route": "app/api/patients/route.js",
-  "/scheduling/page": "app/scheduling/page.js",
-  "/api/schedule/slots/route": "app/api/schedule/slots/route.js",
-  "/waiting-room/page": "app/waiting-room/page.js"
+  "/api/notifications/[id]/read/route": "app/api/notifications/[id]/read/route.js"
 }

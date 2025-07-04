@@ -1,35 +1,15 @@
 {
   "pages": {
-    "/auth/signin/page": [
+    "/dashboard/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/auth/signin/page.js"
+      "static/chunks/app/dashboard/page.js"
     ],
     "/layout": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
-    ],
-    "/dashboard/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/dashboard/page.js"
-    ],
-    "/sessions/create/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/sessions/create/page.js"
-    ],
-    "/sessions/join/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/sessions/join/page.js"
-    ],
-    "/sessions/[sessionId]/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/sessions/[sessionId]/page.js"
     ],
     "/page": [
       "static/chunks/webpack.js",
@@ -46,15 +26,30 @@
       "static/chunks/main-app.js",
       "static/chunks/app/patients/page.js"
     ],
-    "/scheduling/page": [
+    "/patients/[id]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/scheduling/page.js"
+      "static/chunks/app/patients/[id]/page.js"
     ],
-    "/waiting-room/page": [
+    "/auth/signin/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/waiting-room/page.js"
+      "static/chunks/app/auth/signin/page.js"
+    ],
+    "/sessions/create/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/sessions/create/page.js"
+    ],
+    "/sessions/join/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/sessions/join/page.js"
+    ],
+    "/sessions/[sessionId]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/sessions/[sessionId]/page.js"
     ],
     "/_not-found/page": [
       "static/chunks/webpack.js",
