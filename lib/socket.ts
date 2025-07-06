@@ -10,7 +10,7 @@ export interface SocketWithIO extends NetServer {
   io?: SocketServer;
 }
 
-export interface NextApiResponseWithSocket extends NextApiResponse {
+export type NextApiResponseWithSocket = NextApiResponse & {
   socket: {
     server: SocketWithIO;
   };

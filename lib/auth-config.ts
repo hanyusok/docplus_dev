@@ -39,7 +39,7 @@ export const authOptions: NextAuthOptions = {
             email: user.email,
             name: `${user.firstName} ${user.lastName}`,
             userType: user.userType,
-            image: user.profileImage
+            image: user.profileImage || undefined
           };
         } catch (error) {
           console.error("Auth error:", error);

@@ -1,7 +1,7 @@
 "use client";
 
 import { signIn, getSession } from "next-auth/react";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import FormInput from "@/components/ui/FormInput";
@@ -9,7 +9,7 @@ import ErrorDisplay from "@/components/ui/ErrorDisplay";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { validateLoginForm, LoginFormData } from "@/components/auth/FormValidation";
 
-export default function LoginPage() {
+function LoginForm() {
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
     password: "",
@@ -179,5 +179,13 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 } 
