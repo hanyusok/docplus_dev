@@ -47,9 +47,11 @@ export default function PatientDashboard() {
             <h2 className="text-2xl font-bold text-gray-900">Your Upcoming Sessions</h2>
             <p className="text-gray-600">Join group sessions or book new appointments.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <Link href="/sessions/join" className="bg-green-600 text-white px-6 py-4 rounded-lg font-medium hover:bg-green-700 transition-colors text-center">Join Group Session</Link>
             <Link href="/appointments" className="bg-blue-600 text-white px-6 py-4 rounded-lg font-medium hover:bg-blue-700 transition-colors text-center">View Appointments</Link>
+            <Link href="/patient/profile" className="bg-purple-600 text-white px-6 py-4 rounded-lg font-medium hover:bg-purple-700 transition-colors text-center">View Profile</Link>
+            <Link href={`/patients/${session.user.id}/edit`} className="bg-indigo-600 text-white px-6 py-4 rounded-lg font-medium hover:bg-indigo-700 transition-colors text-center">Edit Profile</Link>
           </div>
           <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Activity</h3>
